@@ -1,3 +1,4 @@
+![Selenium E2E Tests](https://github.com/Himans-03/selenium-e2e-framework/actions/workflows/ci.yml/badge.svg)
 # 🧪 Selenium E2E Test Framework
 
 ![CI](https://github.com/Himans-03/selenium-e2e-framework/actions/workflows/ci.yml/badge.svg)
