@@ -1,57 +1,49 @@
-name: 🧪 Selenium E2E Tests
+name: Selenium E2E Tests
 
-# When does this pipeline run?
 on:
   push:
-    branches: [ main, develop ]   # On every push to main or develop
+    branches: [main]
   pull_request:
-    branches: [ main ]            # On every PR targeting main
-  workflow_dispatch:              # Also allows manual runs from GitHub UI
+    branches: [main]
 
 jobs:
-  test:
-    name: Run E2E Tests
-    runs-on: ubuntu-latest        # GitHub provides a free Ubuntu machine
+  e2e-tests:
+    runs-on: ubuntu-latest
 
     steps:
-
-      # 1. Check out your code
-      - name: 📥 Checkout repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Set up Python
-      - name: 🐍 Set up Python 3.11
+      - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      # 3. Cache pip packages so repeat runs are faster
-      - name: 📦 Cache pip dependencies
-        uses: actions/cache@v4
+      - name: Cache pip dependencies
+        uses: actions/cache@v3
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
 
-      # 4. Install all Python packages
-      - name: ⚙️ Install dependencies
+      - name: Install dependencies
         run: pip install -r requirements.txt
 
-      # 5. Install Google Chrome (Ubuntu doesn't have it by default)
-      - name: 🌐 Install Chrome
+      - name: Install Chrome
         uses: browser-actions/setup-chrome@v1
 
-      # 6. Run the tests!
-      - name: 🧪 Run pytest
-        run: pytest
-        # Tests run headless (no UI) because config.py sets HEADLESS = True
+      - name: Run pytest
+        env:
+          HEADLESS: "true"
+          PYTHONPATH: "."
+        run: |
+          pytest tests/ \
+            --html=reports/report.html \
+            --self-contained-html \
+            -v
 
-      # 7. Upload the HTML report so you can download and read it
-      - name: 📊 Upload test report
-        if: always()              # Upload even if tests failed
+      - name: Upload test report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-report
           path: reports/report.html
-          retention-days: 7
