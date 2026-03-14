@@ -1,0 +1,57 @@
+name: 🧪 Selenium E2E Tests
+
+# When does this pipeline run?
+on:
+  push:
+    branches: [ main, develop ]   # On every push to main or develop
+  pull_request:
+    branches: [ main ]            # On every PR targeting main
+  workflow_dispatch:              # Also allows manual runs from GitHub UI
+
+jobs:
+  test:
+    name: Run E2E Tests
+    runs-on: ubuntu-latest        # GitHub provides a free Ubuntu machine
+
+    steps:
+
+      # 1. Check out your code
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Set up Python
+      - name: 🐍 Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # 3. Cache pip packages so repeat runs are faster
+      - name: 📦 Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      # 4. Install all Python packages
+      - name: ⚙️ Install dependencies
+        run: pip install -r requirements.txt
+
+      # 5. Install Google Chrome (Ubuntu doesn't have it by default)
+      - name: 🌐 Install Chrome
+        uses: browser-actions/setup-chrome@v1
+
+      # 6. Run the tests!
+      - name: 🧪 Run pytest
+        run: pytest
+        # Tests run headless (no UI) because config.py sets HEADLESS = True
+
+      # 7. Upload the HTML report so you can download and read it
+      - name: 📊 Upload test report
+        if: always()              # Upload even if tests failed
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report
+          path: reports/report.html
+          retention-days: 7
